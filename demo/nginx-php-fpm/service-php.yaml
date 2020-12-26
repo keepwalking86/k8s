@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-web-crm
+  labels:
+    tier: dev-crm
+spec:
+  selector:
+    app: php-web-crm
+    tier: dev-crm
+  ports:
+  - protocol: TCP
+    port: 9000

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-web-crm
+  labels:
+    tier: dev-crm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: php-web-crm
+      tier: dev-crm
+  template:
+    metadata:
+      labels:
+        app: php-web-crm
+        tier: dev-crm
+    spec:
+      volumes:
+      - name: code
+        persistentVolumeClaim:
+          claimName: code
+      containers:
+      - name: php
+        image: php:7-fpm
+        volumeMounts:
+        - name: code
+          mountPath: /code
+          subPath: example.com

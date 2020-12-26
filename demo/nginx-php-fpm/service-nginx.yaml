@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-web-crm
+  labels:
+    tier: crm
+spec:
+  selector:
+    app: nginx-web-crm
+    tier: crm
+  ports:
+  - protocol: TCP
+    port: 80
+    nodePort: 30080
+  type: LoadBalancer
+  externalIPs:
+  - 192.168.10.200

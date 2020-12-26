@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-web-crm
+  labels:
+    tier: dev-crm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-web-crm
+      tier: dev-crm
+  template:
+    metadata:
+      labels:
+        app: nginx-web-crm
+        tier: dev-crm
+    spec:
+      volumes:
+      - name: code
+        persistentVolumeClaim:
+          claimName: code
+      - name: config
+        configMap:
+          name: nginx-config
+          items:
+          - key: config
+            path: example.com.conf
+      containers:
+      - name: nginx
+        image: nginx:1.18.0
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: code
+          mountPath: /code
+          subPath: example.com
+        - name: config
+          mountPath: /etc/nginx/conf.d
