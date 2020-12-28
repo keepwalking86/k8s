@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nexus
+  template:
+    metadata:
+      labels:
+        app: nexus
+    spec:
+      containers:
+      - image: sonatype/nexus3
+        imagePullPolicy: Always
+        name: nexus
+        ports:
+        - containerPort: 8081
+        - containerPort: 8083
+        volumeMounts:
+          - mountPath: /nexus-data
+            name: docker-hub-volume
+      volumes:
+        - name: docker-hub-volume
+          persistentVolumeClaim:
+            claimName: hub
