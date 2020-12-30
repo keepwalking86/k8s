@@ -26,16 +26,15 @@ Cách setup đơn giản là dùng helm để install nginx web proxy
 
 [https://kubernetes.github.io/ingress-nginx/deploy/#using-helm](https://kubernetes.github.io/ingress-nginx/deploy/#using-helm)
 
-``
+```
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 helm install ingress-nginx ingress-nginx/ingress-nginx
 helm upgrade ingress-nginx stable/nginx-ingress --set controller.publishService.enabled=true
+helm install ingress-nginx ingress-nginx/ingress-nginx
 ```
 
 Quá trình thực hiện cài đặt
-
-`helm install ingress-nginx ingress-nginx/ingress-nginx`
 
 ```
 NAME: ingress-nginx
