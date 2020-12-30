@@ -594,3 +594,212 @@ Thực hiện lệnh sau để khởi tạo các dịch vụ Kubernetes Master (
 
 `kubeadm init --config kubeadm-config.yaml`
 
+## 2.4 CNI (Container Network Interface)
+
+Một số CNI phổ biến được dùng như Flannel, Calico, Weave, … 
+
+Chúng ta sẽ cấu hình Flannel - Một overlay network đơn giản. Thực hiện triển khai flannel network đến kubenetes cluster như sau
+
+`kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml`
+
+Note: Trong trường hợp sửa đổi một số trường trong flannel network (chẳng hạn như thay đổi podSubnet: 10.244.0.0/16) khi đó, chúng ta download hẳn tệp cấu hình kube-flannel.yml và sửa đổi thông tin trước khi áp dụng flannet network.
+
+```
+[root@master1 ssl]# kubectl get pods --all-namespaces
+NAMESPACE     NAME                              READY   STATUS              RESTARTS   AGE
+kube-system   coredns-f9fd979d6-8q22k           0/1     ContainerCreating   0          85m
+kube-system   coredns-f9fd979d6-9cdmh           0/1     ContainerCreating   0          85m
+kube-system   kube-apiserver-master1            1/1     Running             0          86m
+kube-system   kube-apiserver-master2            1/1     Running             0          2m4s
+kube-system   kube-apiserver-master3            1/1     Running             0          12m
+kube-system   kube-controller-manager-master1   1/1     Running             0          86m
+kube-system   kube-controller-manager-master2   1/1     Running             0          2m4s
+kube-system   kube-controller-manager-master3   1/1     Running             0          12m
+kube-system   kube-flannel-ds-4jbtr             1/1     Running             0          61m
+kube-system   kube-flannel-ds-amd64-7ks8w       1/1     Running             1          42m
+kube-system   kube-flannel-ds-amd64-cf25r       1/1     Running             0          42m
+kube-system   kube-flannel-ds-amd64-dwhns       1/1     Running             1          42m
+kube-system   kube-flannel-ds-prhs2             1/1     Running             0          61m
+kube-system   kube-flannel-ds-zqntf             1/1     Running             14         61m
+kube-system   kube-proxy-djlbx                  1/1     Running             0          78m
+kube-system   kube-proxy-kwhgv                  1/1     Running             0          82m
+kube-system   kube-proxy-s8r85                  1/1     Running             0          85m
+kube-system   kube-scheduler-master1            1/1     Running             0          86m
+kube-system   kube-scheduler-master2            1/1     Running             0          2m4s
+kube-system   kube-scheduler-master3            1/1     Running             0 12m
+```
+
+**Check network interfaces**
+
+```
+[root@master1 ssl]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 00:50:56:88:1d:cd brd ff:ff:ff:ff:ff:ff
+    inet 192.168.10.222/24 brd 192.168.10.255 scope global noprefixroute eth0
+       valid_lft forever preferred_lft forever
+    inet6 2402:800:6106:1ef:250:56ff:fe88:1dcd/64 scope global noprefixroute dynamic 
+       valid_lft 2591833sec preferred_lft 604633sec
+    inet6 fd00::250:56ff:fe88:1dcd/64 scope global noprefixroute dynamic 
+       valid_lft 2591833sec preferred_lft 604633sec
+    inet6 fe80::250:56ff:fe88:1dcd/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: br-0ebfaa590f35: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default 
+    link/ether 02:42:92:4d:7c:a3 brd ff:ff:ff:ff:ff:ff
+    inet 172.18.0.1/16 brd 172.18.255.255 scope global br-0ebfaa590f35
+       valid_lft forever preferred_lft forever
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default 
+    link/ether 02:42:c2:fd:06:15 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default 
+    link/ether 02:ce:56:71:fe:69 brd ff:ff:ff:ff:ff:ff
+    inet 10.244.0.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ce:56ff:fe71:fe69/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+## 2.5 Join Worker Node into Kubernetes cluster
+
+Sử dụng thông tin token xuất sau khi kết nối khởi tạo Kubernetes cluster hoặc nếu quên thì dùng lệnh sau để show tokens
+
+`kubeadm token list`
+
+Trên các worker node thực hiện join kubenetes cluster như sau:
+
+`kubeadm join 192.168.10.222:6443 --token ibxniu.afqjvaip8zon6g9b     --discovery-token-ca-cert-hash sha256:598937ce7c3ef93dfc2d8ffa7c689cc3cd9517a705c029204157e6a0d0f3d89f`
+
+```
+[root@worker2 ~]# kubeadm join 192.168.10.222:6443 --token ibxniu.afqjvaip8zon6g9b     --discovery-token-ca-cert-hash sha256:598937ce7c3ef93dfc2d8ffa7c689cc3cd9517a705c029204157e6a0d0f3d89f
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -oyaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+```
+
+Sau khi join hoàn thành trên các worker node, thực hiện get nodes trên control-plane
+
+```
+[root@master1 ~]# kubectl get nodes
+NAME      STATUS   ROLES    AGE   VERSION
+master1   Ready    master   15h   v1.19.3
+master2   Ready    master   15h   v1.19.3
+master3   Ready    master   15h   v1.19.3
+worker1   Ready    <none>   5m    v1.19.3
+worker2   Ready    <none>   12m   v1.19.3
+worker3   Ready    <none>   78s   v1.19.3
+```
+
+## 3. Create Pod, Deployment, Service
+
+Ở đây, ta lưu ý là một pod gồm một hoặc nhiều container chia sẻ cùng storage và network với nhau. 
+
+Chúng ta thực hiện tạo pod trên node master với công cụ kubectl. Tạo deployment đầu tiên với tên nginx, image là nginx
+
+`kubectl create deployment nginx --image=nginx`
+
+Kiểm tra thông tin của deployment nginx
+
+```
+[root@master2 ~]# kubectl describe deployment nginx
+Name:                   nginx
+Namespace:              default
+CreationTimestamp:      Tue, 03 Nov 2020 15:39:56 +0700
+Labels:                 app=nginx
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=nginx
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx
+  Containers:
+   nginx:
+    Image:        nginx
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-6799fc88d8 (1/1 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  22m   deployment-controller  Scaled up replica set nginx-6799fc88d8 to 1
+```
+
+Tiếp theo, chúng ta sẽ expose pod để cho phép truy cập từ bên ngoài kubenetes. Thực hiện tạo một service nodeport cho nginx pod
+
+Tạo service trong kubernetes có một số kiểu sau:
+
+ClusterIP: Create a ClusterIP service.
+
+ExternalName: Create an ExternalName service.
+
+LoadBalancer: Create a LoadBalancer service.
+
+NodePort: Create a NodePort service.
+
+`kubectl create service nodeport nginx --tcp=80:80`
+
+Check NodePort và IP đang sử dụng cho nginx pod
+
+```
+[root@master1 ~]# kubectl get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+busybox                  1/1     Running   23         23h
+nginx-55649fd747-rrc7l   1/1     Running   0          23m
+[root@master1 ~]# kubectl describe service nginx
+Name:                     nginx
+Namespace:                default
+Labels:                   app=nginx
+Annotations:              <none>
+Selector:                 app=nginx
+Type:                     NodePort
+IP:                       10.111.198.163
+Port:                     80-80  80/TCP
+TargetPort:               80/TCP
+NodePort:                 80-80  30598/TCP
+Endpoints:                10.244.3.21:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+[root@master1 ~]# kubectl get svc
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP        39h
+nginx        NodePort    10.111.198.163   <none>        80:30598/TCP   10m
+```
+
+Ở đây, show thông tin pod là **nginx-55649fd747-rrc7l** với Cluster-IP là **10.111.198.163** và expose port là **30598**
+
+Khi đó, các node trong kubernetes có thể truy cập 10.111.198.163 với port 80, còn từ ngoài Kubernetes ta có thể truy cập được qua một trong các địa chỉ IP của master (192.168.10.22x) với port 30598
+
+Show một số thông tin mở rộng về pods,services,deployments
+
+<p align="center">
+<img src="../images/get-pod-svc.png" />
+</p>
+
+Với các thông tin này, chúng ta dễ dàng biết pod đang chạy trên worker node nào; service đang chạy sử dụng Cluster-IP, expose port nào, biết được số lượng replicas, image đang sử dụng, ..
