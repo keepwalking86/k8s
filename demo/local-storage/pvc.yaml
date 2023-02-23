@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: code-web-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: code-web-storage
+  resources:
+    requests:
+      storage: 20Gi
