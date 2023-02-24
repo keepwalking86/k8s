@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laravel-in-kubernetes
+  namespace: crm
+data:
+  APP_NAME: "Laravel"
+  APP_ENV: "production"
+  APP_DEBUG: "true"
+  APP_URL: "http://example.com"
+
+  #mongodb
+  DB_MONGO_HOST: "192.x.x.x"
+  DB_MONGO_PORT: "27017"
+
+  #rabbitmq
+  RABBITMQ_HOST: "192.x.x.x"
+
+  #redis
+  REDIS_HOST_1: "192.x.x.x"
+  REDIS_HOST_1_PORT_1: "70001"
+  REDIS_HOST_1_PORT_2: "70002"
+  REDIS_HOST_2: "192.x.x.x"
+  REDIS_HOST_2_PORT_1: "70001"
+  REDIS_HOST_2_PORT_2: "70002"
+  REDIS_HOST_3: "192.x.x.x"
+  REDIS_HOST_3_PORT_1: "70001"
+  REDIS_HOST_3_PORT_2: "70002"
+
+  #mysql
+  DB_HOST_MYSQL: "192.x.x.x"
+  DB_PORT_MYSQL: "3306"
+
+  # Update the LOG_CHANNEL to stdout for Kubernetes
+  LOG_CHANNEL: "stdout"
+  LOG_LEVEL: "debug"
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  FILESYSTEM_DRIVER: "local"
+  QUEUE_CONNECTION: "sync"

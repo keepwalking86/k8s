@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-kubernetes
+  namespace: crm
+spec:
+  selector:
+    run: laravel-kubernetes
+  ports:
+    - protocol: TCP
+      port: 80

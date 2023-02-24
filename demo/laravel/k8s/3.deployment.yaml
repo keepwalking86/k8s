@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-kubernetes
+  namespace: crm
+spec:
+  selector:
+    matchLabels:
+      run: laravel-kubernetes
+  template:
+    metadata:
+      labels:
+        run: laravel-kubernetes
+    spec:
+      containers:
+        - name: demo
+          image: hub.example.com/laravel-kubernetes
+          envFrom:
+            - configMapRef:
+                name: laravel-in-kubernetes
+            - secretRef:
+                name: laravel-in-kubernetes
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_KEY
+              value: base64:mWwZyY3ydIrPR3+lPrcKvRVQRkF4IGe7mircqfO2/sX=
+      imagePullSecrets:
+      - name: docker-secret
