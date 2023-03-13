@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-kubernetes
+  namespace: crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: laravel-kubernetes
+  template:
+    metadata:
+      labels:
+        run: laravel-kubernetes
+    spec:
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+      - name: code
+        hostPath:
+          path: /code
+      containers:
+        # Our PHP-FPM application
+        - image: hub.example.com/keepwalking86-nginx-php:latest
+          name: app
+          volumeMounts:
+            - name: code
+              mountPath: /var/www/html
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "cp -r /app/. /var/www/html"]
+        - image: nginx:1.22.1
+          name: nginx
+          volumeMounts:
+            - name: code
+              mountPath: /var/www/html
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          ports:
+            - containerPort: 80              
+      imagePullSecrets:
+        - name: registrypullsecret
